@@ -20,36 +20,34 @@ start_time = time.time()
 if rank == 0:
     data = init_world(nbbodies)
 else:
-    data = np.empty((nbbodies, 6), dtype=float)
+    data = np.zeros((nbbodies, 6), dtype='f')
 
 # Determine local size for each process
 local_size = nbbodies // size
 
-# Allocate local storage
-data_compute = np.empty((local_size, 6), dtype=float)
 
 # Broadcast initial data to all processes
 comm.Bcast(data, root=0)
 
 # Simulation loop
 for t in range(NBSTEPS):
-    print("test")
-    # Scatter data to all processes
-    comm.Scatter(data, data_compute, root=0)
 
     # Compute forces
     force = np.zeros((local_size, 2))
     for i in range(local_size):
         for j in range(nbbodies):
-            force[i] += interaction(data_compute[i], data[j])
+            force[i] += interaction(data[i], data[j])
 
-    # Update positions and velocities
+    # Update positions and 
+    data_update=np.zeros((local_size,6), dtype='f')
     for i in range(local_size):
-        data_compute[i] = update(data_compute[i], force[i])
+        data_update[i] = update(data[i], force[i])
+    
+    comm.Allgather(data_update,data)
 
     # Gather updated data from all processes
-    data = np.empty((nbbodies, 6), dtype=float)
-    comm.Gather(data_compute, data, root=0)
+    data = np.zeros((nbbodies, 6), dtype='f')
+    comm.Gather(data_update, data, root=0)
 
     # Optionally broadcast the updated global data back to all processes
     if t < NBSTEPS - 1:  # Skip on the last step as no further computation follows

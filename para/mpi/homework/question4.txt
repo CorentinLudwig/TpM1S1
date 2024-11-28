@@ -1,0 +1,10 @@
+size      seq       par       opt
+ 1   4.371422052383423  5.26571798324585  3.363121747970581  
+ 2   4.48781418800354  2.7905147075653076  2.671759605407715  
+ 3   4.354182720184326  2.13067364692688  2.1073098182678223  
+ 4   4.5156190395355225  1.9856159687042236  1.7320666313171387
+
+On remarque que le temps seq et meilleur que par pour un thread, se qui s'explique par l'ajoue des appelle MPI mais surtout par le calcule de unbalance.
+opt a toujours le meilleur temps ce qui est lier a sont algo plus optimiser.
+Le temps de calcule diminue pour tout les thread ajouter, marquant qu'on as pas attend la limite de threads optimale pour la machine tester.
+par devient meilleurque seq pour 2 thread utiliser montrant que l'lgorithme peut etre correctement paralleliser

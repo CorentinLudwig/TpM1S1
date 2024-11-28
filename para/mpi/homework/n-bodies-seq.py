@@ -1,5 +1,3 @@
-# python3 n-bodies-base.py 12 1000
-
 import sys
 import time
 import random
@@ -13,31 +11,31 @@ DISPLAY = len(sys.argv) != 4
 
 start_time = time.time()
 
-# Modify only starting here
 
 data = init_world(nbbodies)
-if DISPLAY:
-    displayPlot(data)
-    # A pause of 2 secodes just to show the initial display
-    # REMOVE IT as soon as you start coding
-    # plt.pause(2)
-    
+
+
+# Simulation loop
 for t in range(NBSTEPS):
+    # calcule the force for all bodies
     force = np.zeros((nbbodies,2))
     for i in range(nbbodies):
         for j in range(nbbodies):
             force[i] = force[i] + interaction(data[i],data[j])
     
+    #update all bodies
     for i in range(nbbodies):
         data[i] = update(data[i], force[i])
-
-if DISPLAY:
-    displayPlot(data)
-    # plt.pause(2)
-
+    
+    if DISPLAY:
+        displayPlot(data)
 
 
-end_time = time.time()   
+
+
+end_time = time.time()
+
+# Output results
 print("Duration:", end_time-start_time)
 print("Signature: %.4e" % (signature(data)))
 print("Unbalance: %d" % (100*(0)))

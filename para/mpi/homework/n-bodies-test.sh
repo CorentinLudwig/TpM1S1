@@ -36,6 +36,7 @@ do
 		then
 		    echo Problem with $nproc processes and $size stars using $target
 			echo "    Last line of output \"$val\""
+			echo "    insted of \"$base\""
 		else
 		    echo OK for $nproc processes and $size stars using $target
 		    res=$(( $res + 1 ))

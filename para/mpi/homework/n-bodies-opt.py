@@ -26,28 +26,29 @@ else:
 local_size = nbbodies // size
 
 
-
 # Simulation loop
 data_update=np.zeros((local_size,6), dtype='f')
 interaction_use = 0
 for t in range(NBSTEPS):
     comm.Bcast(data, root=0)
     # calcule the force for all bodies
-    force = np.zeros((local_size, 2), dtype='f')
+    force = np.zeros((nbbodies, 2), dtype='f')
     for i in range(local_size):
-        for j in range(nbbodies):
-            force[i] += interaction(data[i+rank*local_size], data[j])
+        i_global = i+rank*local_size
+        for j in range(i_global):
+            force_j_on_i = interaction(data[i_global], data[j])
+            force[i_global] += force_j_on_i
+            force[j] -= force_j_on_i
             interaction_use += 1
 
-    #update all bodies
-    for i in range(local_size):
-        data_update[i] = update(data[i+rank*local_size], force[i])
+    force_compute = np.zeros((nbbodies, 2), dtype='f')
+    comm.Reduce(force,force_compute,op=MPI.SUM,root=0)
     
-    comm.Allgather(data_update,data)
-    
-    if DISPLAY:
-        displayPlot(data)
-
+    if rank==0:
+        #update all bodies
+        for i in range(nbbodies):
+            data[i] = update(data[i], force_compute[i])
+            
 # calcule of unbalance
 interaction_use = np.array([interaction_use])
 
@@ -66,3 +67,7 @@ if rank == 0:
     print("Duration:", end_time - start_time)
     print("Signature: %.4e" % signature(data))
     print("Unbalance: %d" % (unbalance))
+
+    # Display the results if requested
+    if DISPLAY:
+        displayPlot(data)

@@ -3,23 +3,46 @@
 import sys
 import time
 import random
-from multiprocessing import Process
+from multiprocessing import Process, Lock, Condition, Value, Array
 
 class RW:
     def __init__(self):
-        pass
+        self.verrou = Lock()
+        self.nb_reader = 0
+        self.nb_writer_wait = 0
+        self.writing = False
+        self.access = [Condition(self.verrou),Condition(self.verrou)]
 
     def start_read(self):
-        pass
+        with self.verrou:
+            while self.writing:
+                self.access[1].wait()
+            self.nb_reader +=1
 
     def end_read(self):
-        pass
+        with self.verrou:
+            self.nb_reader -=1
+            if nb_reader == 0 and self.nb_writer_wait>0:
+                self.access[0].notify()
+            else:
+                self.access[1].notify()
 
     def start_write(self):
-        pass
+        with self.verrou:
+            while self.nb_reader>0 or  self.writing :
+                self.nb_writer_wait += 1
+                self.access[0].wait()
+                self.nb_writer_wait -= 1
+            self.writing = True
 
     def end_write(self):
-        pass
+        with self.verrou:
+            self.writing = False
+            
+            if self.nb_writer_wait > 0:
+                self.access[0].notify()
+            else:
+                self.access[1].notify()
 
 
 def process_writer(identifier, synchro):
